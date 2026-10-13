@@ -1,0 +1,45 @@
+name: Deploy to gh-pages via git
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare publish dir
+        run: |
+          rm -rf out || true
+          mkdir out
+          rsync -a --exclude='.git' --exclude='.github' --exclude='.github/workflows' ./ out/
+
+      - name: Publish via git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -e
+          cd out
+          touch .nojekyll
+          git init
+          git checkout -b gh-pages
+          git add -A
+          git commit -m "Deploy from main: $GITHUB_SHA" || echo "no changes to commit"
+          git push --force "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
