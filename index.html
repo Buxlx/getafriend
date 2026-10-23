@@ -605,18 +605,18 @@ const ANALYSIS_LINES = ["Reading your answer", "Checking your heart rate", "Cons
 /* Build target: standalone website. The application is emailed to the page owner the moment it is submitted. */
 const AUTO_SEND = true;
 
-/* The one address this site lives at. FormSubmit asks an inbox to activate once for each website
-   address that sends to it, so every link and every send uses this address. Then one activation lasts.
-   If you move the site to a new domain, change this and activate once more. */
-const SITE_ORIGIN = "https://getafriend.netlify.app";
+/* Where this site lives: GitHub Pages. Every link the page makes (a personal page, the share buttons)
+   points here, and applications are sent from here, so FormSubmit only has to be activated once for each
+   inbox. If the site moves, change this one line and activate once more. */
+const SITE_URL = "https://buxlx.github.io/getafriend/";
 
-/* Netlify also serves each deploy at its own address (like 1234abcd--dynamic-puffpuff-1f2e12.netlify.app).
-   Sends from there would ask for activation again, so those addresses move to the main one. */
-(function useMainAddress() {
+/* A copy of the page opened from Netlify (its main address or one of its per-deploy addresses) moves to
+   SITE_URL. Everything after the # comes along, so personal-page links keep working. */
+(function useSiteAddress() {
   if (!AUTO_SEND) return;
-  const main = new URL(SITE_ORIGIN).hostname;
-  if (location.hostname !== main && location.hostname.endsWith("--" + main)) {
-    location.replace(SITE_ORIGIN + location.pathname + location.search + location.hash);
+  const here = location.hostname;
+  if (here.endsWith(".netlify.app") && here !== new URL(SITE_URL).hostname) {
+    location.replace(SITE_URL + location.search + location.hash);
   }
 })();
 
@@ -824,8 +824,8 @@ function decodeOwner(code) {
   }
 }
 
-/* The website build links to its main address. The Claude artifact build links to its published address. */
-const baseUrl = () => (AUTO_SEND ? SITE_ORIGIN + "/" : BASE_URL);
+/* The website build links to SITE_URL. The Claude artifact build links to its published address. */
+const baseUrl = () => (AUTO_SEND ? SITE_URL : BASE_URL);
 const linkFor = o => baseUrl() + "#" + encodeOwner(o);
 const possessive = () => (owner.custom ? owner.name + "’s" : "his");
 const ownerTitle = () => owner.name + "’s Partner Portal";
